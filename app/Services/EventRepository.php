@@ -261,8 +261,9 @@ class EventRepository
 
     public function getEvent(Project $project, string $eventId): ?array
     {
+        // Alias must not be "event_id": ClickHouse would resolve the WHERE against the String alias.
         $row = $this->ch->selectOne(
-            "SELECT toString(event_id) AS event_id, * EXCEPT event_id FROM {$this->events()}
+            "SELECT toString(event_id) AS id, * EXCEPT event_id FROM {$this->events()}
              WHERE project_id = {pid:UInt64} AND event_id = {eid:UUID} LIMIT 1",
             ['pid' => $project->id, 'eid' => $eventId]
         );
@@ -273,7 +274,7 @@ class EventRepository
     public function latestIssueEvent(Project $project, int $issueId): ?array
     {
         $row = $this->ch->selectOne(
-            "SELECT toString(event_id) AS event_id, * EXCEPT event_id FROM {$this->events()}
+            "SELECT toString(event_id) AS id, * EXCEPT event_id FROM {$this->events()}
              WHERE project_id = {pid:UInt64} AND issue_id = {iid:UInt64} ORDER BY timestamp DESC LIMIT 1",
             ['pid' => $project->id, 'iid' => $issueId]
         );
@@ -406,6 +407,10 @@ class EventRepository
 
     public function decode(array $row): array
     {
+        if (isset($row['id']) && ! isset($row['event_id'])) {
+            $row = ['event_id' => $row['id']] + $row;
+            unset($row['id']);
+        }
         $payload = json_decode($row['payload'] ?? '{}', true) ?: [];
         unset($row['payload']);
         $row['payload'] = $payload;
@@ -533,7 +538,7 @@ class EventRepository
     public function getTransaction(Project $project, string $eventId): ?array
     {
         $row = $this->ch->selectOne(
-            "SELECT toString(event_id) AS event_id, * EXCEPT event_id FROM {$this->transactions()} WHERE project_id = {pid:UInt64} AND event_id = {eid:UUID} LIMIT 1",
+            "SELECT toString(event_id) AS id, * EXCEPT event_id FROM {$this->transactions()} WHERE project_id = {pid:UInt64} AND event_id = {eid:UUID} LIMIT 1",
             ['pid' => $project->id, 'eid' => $eventId]
         );
 
