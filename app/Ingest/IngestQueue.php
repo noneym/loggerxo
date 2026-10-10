@@ -36,7 +36,8 @@ class IngestQueue
             return 0;
         }
         $encoded = array_map(fn ($item) => json_encode($item, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_INVALID_UTF8_SUBSTITUTE | JSON_PARTIAL_OUTPUT_ON_ERROR), $items);
-        $this->redis()->rpush($this->key(), $encoded);
+        // Spread the values: phpredis would otherwise stringify the array into a single "Array" item.
+        $this->redis()->rpush($this->key(), ...$encoded);
 
         return count($encoded);
     }
@@ -44,14 +45,14 @@ class IngestQueue
     public function requeue(array $rawItems): void
     {
         if ($rawItems !== []) {
-            $this->redis()->rpush($this->key(), $rawItems);
+            $this->redis()->rpush($this->key(), ...array_values($rawItems));
         }
     }
 
     public function dead(array $rawItems): void
     {
         if ($rawItems !== []) {
-            $this->redis()->rpush($this->deadKey(), $rawItems);
+            $this->redis()->rpush($this->deadKey(), ...array_values($rawItems));
             $this->redis()->ltrim($this->deadKey(), -5000, -1);
         }
     }

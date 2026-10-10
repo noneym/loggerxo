@@ -67,6 +67,7 @@ class IngestWorker extends Command
                     $items[] = $decoded;
                 } else {
                     $undecodable++;
+                    Log::warning('loggerxo: undecodable queue item dropped', ['preview' => mb_substr((string) $json, 0, 120)]);
                 }
             }
 
