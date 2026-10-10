@@ -1,6 +1,6 @@
 # Loggerxo
 
-Self-hosted error tracking, log search and performance monitoring for Laravel and browser apps. Sentry-style issues, ClickHouse speed, one Docker container.
+Open source (MIT) error tracking, log search and performance monitoring for Laravel and browser apps. Sentry-style issues, ClickHouse speed, one Docker container.
 
 - **Issues** – exceptions and repeated log problems fingerprinted into groups with stack traces, breadcrumbs, request/user context; resolve / ignore / assign; regression detection.
 - **Logs & console** – every Laravel log level and browser `console.error/warn`, searchable (`url:`, `user:`, `tag:k=v`, `exception:` …), live tail.

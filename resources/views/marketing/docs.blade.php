@@ -6,9 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Documentation · Loggerxo</title>
     <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="h-full">
@@ -22,7 +19,7 @@
 <div class="mx-auto grid max-w-6xl gap-10 px-6 py-10 lg:grid-cols-[200px_1fr]">
     <aside class="hidden lg:block">
         <nav class="sticky top-20 space-y-1 text-[13px]">
-            @foreach (['concepts' => 'Concepts', 'laravel' => 'Laravel SDK', 'browser' => 'Browser SDK', 'http' => 'HTTP API', 'alerts' => 'Alerts', 'search' => 'Search syntax', 'selfhost' => 'Self-hosting'] as $id => $label)
+            @foreach (['concepts' => 'Concepts', 'laravel' => 'Laravel SDK', 'browser' => 'Browser SDK', 'http' => 'HTTP API', 'alerts' => 'Alerts', 'search' => 'Search syntax', 'selfhost' => 'Deploy'] as $id => $label)
                 <a href="#{{ $id }}" class="block rounded-md px-2.5 py-1.5 text-ink-400 hover:bg-ink-800 hover:text-ink-100">{{ $label }}</a>
             @endforeach
         </nav>
@@ -164,8 +161,8 @@ GET  '.$appUrl.'/api/v1/health' }}</x-code>
         </section>
 
         <section id="selfhost">
-            <h2>Self-hosting</h2>
-            <p>The repository ships a multi-stage <code>Dockerfile</code> (FrankenPHP + supervisord running the web server, ingest workers, queue worker and scheduler). Point it at MariaDB, Redis and ClickHouse via environment variables; migrations run on boot.</p>
+            <h2>Deploy your own instance</h2>
+            <p>Loggerxo is open source (MIT). The repository ships a multi-stage <code>Dockerfile</code> (FrankenPHP + supervisord running the web server, ingest workers, queue worker and scheduler). Point it at MariaDB, Redis and ClickHouse via environment variables; migrations run on boot.</p>
             <x-code>{{ 'APP_KEY=base64:…            APP_URL=https://loggerxo.example.com
 DB_HOST / DB_PORT / DB_DATABASE / DB_USERNAME / DB_PASSWORD
 REDIS_HOST / REDIS_PORT / REDIS_PASSWORD
