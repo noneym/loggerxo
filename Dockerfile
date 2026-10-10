@@ -4,6 +4,7 @@ FROM dunglas/frankenphp:1-php8.3-alpine AS base
 
 ENV APP_ENV=production \
     APP_DEBUG=false \
+    REDIS_CLIENT=phpredis \
     SERVER_NAME=":80"
 
 RUN apk add --no-cache bash curl icu-dev libzip-dev oniguruma-dev supervisor tzdata \
