@@ -7,7 +7,7 @@ ENV APP_ENV=production \
     SERVER_NAME=":80"
 
 RUN apk add --no-cache bash curl icu-dev libzip-dev oniguruma-dev supervisor tzdata \
-    && install-php-extensions pdo_mysql intl zip bcmath opcache pcntl \
+    && install-php-extensions pdo_mysql intl zip bcmath opcache pcntl redis \
     && apk del icu-dev libzip-dev oniguruma-dev
 
 RUN printf "memory_limit=512M\nupload_max_filesize=10M\npost_max_size=12M\nmax_execution_time=60\nexpose_php=Off\n" > /usr/local/etc/php/conf.d/app.ini \

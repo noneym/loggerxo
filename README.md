@@ -13,7 +13,7 @@ Open source (MIT) error tracking, log search and performance monitoring for Lara
 | Store | Used for |
 | --- | --- |
 | MariaDB | users, organizations, projects, issues, alert rules, sessions |
-| Redis | ingest buffer (`lx:ingest` list), cache, queue, rate limits |
+| Redis | ingest buffer (`lx:ingest` list), cache, queue, rate limits (phpredis in the image, predis fallback) |
 | ClickHouse | raw events (`lx_events`) and transactions (`lx_transactions`), HTTP interface |
 
 ```
