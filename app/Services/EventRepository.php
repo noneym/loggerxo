@@ -392,6 +392,10 @@ class EventRepository
                     $where[] = 'tags[{tk:String}] = {tv:String}';
                     $params['tk'] = trim($tk);
                     $params['tv'] = trim($tv);
+                } elseif ($col === 'user_email') {
+                    // user:<value> matches the id, e-mail or IP, since many apps only send an id.
+                    $where[] = '(user_id = {q:String} OR user_ip = {q:String} OR positionCaseInsensitive(user_email, {q:String}) > 0)';
+                    $params['q'] = trim($m[2]);
                 } else {
                     $where[] = "positionCaseInsensitive({$col}, {q:String}) > 0";
                     $params['q'] = trim($m[2]);
