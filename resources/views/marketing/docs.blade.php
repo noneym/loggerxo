@@ -162,7 +162,7 @@ GET  '.$appUrl.'/api/v1/health' }}</x-code>
 
         <section id="selfhost">
             <h2>Deploy your own instance</h2>
-            <p>Loggerxo is open source (MIT). The repository ships a multi-stage <code>Dockerfile</code> (FrankenPHP + supervisord running the web server, ingest workers, queue worker and scheduler). Point it at MariaDB, Redis and ClickHouse via environment variables; migrations run on boot.</p>
+            <p>You can use the hosted service at <a href="https://loggerxo.com" class="text-brand-300">loggerxo.com</a> for free; running your own instance is optional. Loggerxo is open source (MIT). The repository ships a multi-stage <code>Dockerfile</code> (FrankenPHP + supervisord running the web server, ingest workers, queue worker and scheduler). Point it at MariaDB, Redis and ClickHouse via environment variables; migrations run on boot.</p>
             <x-code>{{ 'APP_KEY=base64:…            APP_URL=https://loggerxo.example.com
 DB_HOST / DB_PORT / DB_DATABASE / DB_USERNAME / DB_PASSWORD
 REDIS_HOST / REDIS_PORT / REDIS_PASSWORD

@@ -2,6 +2,8 @@
 
 Open source (MIT) error tracking, log search and performance monitoring for Laravel and browser apps. Sentry-style issues, ClickHouse speed, one Docker container.
 
+**Hosted and free:** you do not have to run anything to try it. Create an account at [loggerxo.com](https://loggerxo.com), make a project and paste the key into your app. The same code powers the hosted service and this repository, so you can move to your own server later without changing anything but the DSN.
+
 - **Issues** – exceptions and repeated log problems fingerprinted into groups with stack traces, breadcrumbs, request/user context; resolve / ignore / assign; regression detection.
 - **Logs & console** – every Laravel log level and browser `console.error/warn`, searchable (`url:`, `user:`, `tag:k=v`, `exception:` …), live tail.
 - **Performance** – p50/p95 per route, slow queries, span waterfalls, web vitals.

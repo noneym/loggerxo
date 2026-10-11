@@ -156,7 +156,8 @@ LOG_STACK=single,loggerxo' }}</x-code>
 
     {{-- Facts row, no cards --}}
     <section class="mx-auto max-w-7xl px-5 py-24 lg:px-8 lg:py-32">
-        <h2 class="max-w-[24ch] text-3xl font-semibold leading-tight tracking-tight text-white md:text-4xl">Built to be run, not rented.</h2>
+        <h2 class="max-w-[24ch] text-3xl font-semibold leading-tight tracking-tight text-white md:text-4xl">Hosted for free, or run your own.</h2>
+        <p class="mt-4 max-w-[60ch] text-[15px] leading-relaxed text-ink-400">Use loggerxo.com at no cost, or deploy the same code from GitHub on your servers. Switching later means changing one DSN.</p>
         <div class="mt-12 grid gap-10 md:grid-cols-2 lg:grid-cols-4 lg:gap-0 lg:divide-x lg:divide-ink-800">
             @foreach ([
                 ['bell-ringing', 'Alerts', 'E-mail and Telegram for new issues, regressions, spikes and critical logs. Per-issue cooldowns so a storm is one message.'],
@@ -177,7 +178,7 @@ LOG_STACK=single,loggerxo' }}</x-code>
     <section class="border-t border-ink-800/80">
         <div class="mx-auto max-w-3xl px-5 py-24 text-center lg:py-32">
             <h2 class="text-3xl font-semibold leading-tight tracking-tight text-white md:text-4xl">Read the source, run a project, send the first event.</h2>
-            <p class="mx-auto mt-4 max-w-[52ch] text-[15px] leading-relaxed text-ink-400">The Laravel package, the browser script and the HTTP API are documented on one page.</p>
+            <p class="mx-auto mt-4 max-w-[52ch] text-[15px] leading-relaxed text-ink-400">A free account on loggerxo.com is enough to start. The Laravel package, the browser script and the HTTP API are documented on one page.</p>
             <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
                 @if (config('loggerxo.registration_enabled'))<a href="{{ route('register') }}" class="btn-primary px-5 py-2.5 text-sm">Create account</a>@endif
                 <a href="{{ route('docs') }}" class="btn-secondary px-5 py-2.5 text-sm">Read the docs <x-phosphor-arrow-right class="h-4 w-4" /></a>
