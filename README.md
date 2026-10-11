@@ -1,14 +1,55 @@
-# Loggerxo
+<p align="center">
+  <a href="https://loggerxo.com">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="art/wordmark-light.png">
+      <img src="art/wordmark-dark.png" alt="Loggerxo" width="360">
+    </picture>
+  </a>
+</p>
 
-Open source (MIT) error tracking, log search and performance monitoring for Laravel and browser apps. Sentry-style issues, ClickHouse speed, one Docker container.
+<p align="center">
+  Open source error tracking, log search and performance monitoring for Laravel and browser apps.<br>
+  Sentry-style issues, ClickHouse speed, one Docker container.
+</p>
 
-**Hosted and free:** you do not have to run anything to try it. Create an account at [loggerxo.com](https://loggerxo.com), make a project and paste the key into your app. The same code powers the hosted service and this repository, so you can move to your own server later without changing anything but the DSN.
+<p align="center">
+  <a href="https://loggerxo.com"><strong>Use it free at loggerxo.com</strong></a> ·
+  <a href="https://loggerxo.com/docs">Docs</a> ·
+  <a href="https://github.com/noneym/loggerxo-laravel">Laravel SDK</a> ·
+  <a href="#deploy-docker--dockxo">Run your own</a>
+</p>
 
-- **Issues** – exceptions and repeated log problems fingerprinted into groups with stack traces, breadcrumbs, request/user context; resolve / ignore / assign; regression detection.
-- **Logs & console** – every Laravel log level and browser `console.error/warn`, searchable (`url:`, `user:`, `tag:k=v`, `exception:` …), live tail.
-- **Performance** – p50/p95 per route, slow queries, span waterfalls, web vitals.
-- **Alerts** – e-mail (Cloudflare Email Service or SMTP) and Telegram; triggers: new issue, regression, frequency spike, log level.
-- **Teams** – organizations, projects, roles, invitations, super-admin page.
+<p align="center">
+  <img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-8b5cf6?style=flat-square">
+  <img alt="Laravel 12" src="https://img.shields.io/badge/Laravel-12-ff2d20?style=flat-square&logo=laravel&logoColor=white">
+  <img alt="PHP 8.2+" src="https://img.shields.io/badge/PHP-8.2%2B-777bb4?style=flat-square&logo=php&logoColor=white">
+  <img alt="ClickHouse" src="https://img.shields.io/badge/storage-ClickHouse-ffcc01?style=flat-square&logo=clickhouse&logoColor=black">
+  <img alt="Livewire 3" src="https://img.shields.io/badge/Livewire-3-fb70a9?style=flat-square&logo=livewire&logoColor=white">
+</p>
+
+<p align="center">
+  <img src="public/images/landing/issue.webp" alt="Loggerxo issue page: grouped RuntimeException with event timeline, stack trace, breadcrumbs and tags" width="900">
+</p>
+
+## Hosted and free
+
+You do not have to run anything to try it. Create an account at [loggerxo.com](https://loggerxo.com), make a project and paste the key into your app. The hosted service runs this exact repository, so moving to your own server later means changing one DSN.
+
+## What you get
+
+- **Issues** – exceptions and repeated log problems fingerprinted into groups with stack traces, code context, breadcrumbs, request and user data. Resolve, ignore, assign; regressions reopen automatically.
+- **Logs and console** – every Laravel log level and browser `console.error` / `console.warn`, searchable with `url:`, `user:`, `tag:k=v`, `exception:` and friends. Live tail while you deploy.
+- **Performance** – p50 / p95 per route, slow queries, span waterfalls, web vitals from real page loads.
+- **Alerts** – e-mail (Cloudflare Email Service or SMTP) and Telegram; triggers for new issues, regressions, frequency spikes and critical logs, with per-issue cooldowns.
+- **Teams** – organizations, projects, roles, invitations, and a super-admin page for whoever runs the server.
+
+## Send events
+
+| From | How |
+| --- | --- |
+| Laravel 9 to 12 | `composer require noneym/loggerxo-laravel`, set `LOGGERXO_DSN=https://lx_key@loggerxo.com`, optionally add the `loggerxo` log channel. [Package README](https://github.com/noneym/loggerxo-laravel). |
+| Any website | `<script src="https://loggerxo.com/sdk/loggerxo.js" data-key="lx_key"></script>` (source in [`public/sdk/loggerxo.js`](public/sdk/loggerxo.js)). |
+| Anything else | Plain JSON to `POST /api/v1/envelope`, documented at [loggerxo.com/docs](https://loggerxo.com/docs#http). |
 
 ## Architecture
 
@@ -45,13 +86,7 @@ Add your e-mail to `SUPER_ADMIN_EMAILS` before registering to get the `/admin` p
 
 ## Deploy (Docker / dockxo)
 
-Build the `Dockerfile`; the container runs the web server, `INGEST_WORKERS` ingest processes, a queue worker and the scheduler. On boot it caches config/routes and runs both MariaDB and ClickHouse migrations (`RUN_MIGRATIONS=false` to skip). Required env: `APP_KEY`, `APP_URL`, `DB_*`, `REDIS_*`, `CLICKHOUSE_*`, `MAIL_*`. Health check: `GET /up`.
-
-## SDKs
-
-- **Laravel**: [`sdk/laravel`](sdk/laravel) → published as `noneym/loggerxo-laravel`. `composer require noneym/loggerxo-laravel`, set `LOGGERXO_DSN=https://lx_key@loggerxo.com`, optionally add `loggerxo` to `LOG_STACK`.
-- **Browser**: served by the app at `/sdk/loggerxo.js` (source: `public/sdk/loggerxo.js`). `<script src="https://loggerxo.com/sdk/loggerxo.js" data-key="lx_key"></script>`.
-- **Anything else**: plain HTTP, documented at `/docs` (`/api/v1/envelope`).
+Build the `Dockerfile`; the container runs the web server, `INGEST_WORKERS` ingest processes, a queue worker and the scheduler. On boot it caches config and routes and runs both MariaDB and ClickHouse migrations (`RUN_MIGRATIONS=false` to skip). Required env: `APP_KEY`, `APP_URL`, `DB_*`, `REDIS_*`, `CLICKHOUSE_*`, `MAIL_*`. Health check: `GET /up`.
 
 ## Useful commands
 
@@ -66,3 +101,11 @@ Build the `Dockerfile`; the container runs the web server, `INGEST_WORKERS` inge
 ```bash
 php artisan test
 ```
+
+## Brand
+
+Logo files live in [`art/`](art): the mark as SVG for light and dark backgrounds, an app icon, wordmark PNGs and the social preview banner. The mark is a pair of square brackets with the event inside, after the `[level]` prefix of a log line.
+
+## License
+
+MIT. See [LICENSE](LICENSE).
