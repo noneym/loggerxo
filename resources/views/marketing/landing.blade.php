@@ -9,7 +9,7 @@
     <meta property="og:title" content="Loggerxo">
     <meta property="og:description" content="Open source error tracking, log search and performance monitoring for Laravel and browser apps.">
     <meta property="og:image" content="{{ $appUrl }}/images/landing/issue.webp">
-    <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+    <link rel="icon" href="/favicon.svg?v=2" type="image/svg+xml">
     <link rel="preload" as="image" href="/images/landing/issue.webp" fetchpriority="high">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
