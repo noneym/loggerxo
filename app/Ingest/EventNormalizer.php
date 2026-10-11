@@ -529,6 +529,7 @@ class EventNormalizer
             $value = mb_convert_encoding($value, 'UTF-8', 'UTF-8');
         }
 
-        return mb_strlen($value) > $max ? mb_substr($value, 0, $max).'…' : $value;
+        // The ellipsis counts towards the limit so the result always fits a varchar($max) column.
+        return mb_strlen($value) > $max ? mb_substr($value, 0, max(1, $max - 1)).'…' : $value;
     }
 }

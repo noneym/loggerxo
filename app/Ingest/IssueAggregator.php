@@ -7,6 +7,7 @@ use App\Support\Levels;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 /**
  * Groups normalized events by fingerprint and upserts the issue rows in MariaDB.
@@ -16,7 +17,7 @@ class IssueAggregator
     /**
      * @param  array<int, array>  $issueInputs  the 'issue' part of normalized events, each with project_id
      * @return array<string, array{issue: Issue, new: bool, regressed: bool, count: int, level: string, environment: string}>
-     *                                                                                                                           keyed by "project_id:fingerprint"
+     *                                                                                                                        keyed by "project_id:fingerprint"
      */
     public function aggregate(array $issueInputs): array
     {
@@ -76,84 +77,101 @@ class IssueAggregator
         }
 
         foreach ($groups as $key => $g) {
-            $issue = $existing[$key] ?? null;
-            $isNew = false;
-            $regressed = false;
-
-            if (! $issue) {
-                try {
-                    $issue = Issue::create([
-                        'project_id' => $g['project_id'],
-                        'fingerprint' => $g['fingerprint'],
-                        'type' => $g['type'],
-                        'level' => $g['level'],
-                        'platform' => $g['platform'],
-                        'title' => $g['title'],
-                        'culprit' => $g['culprit'],
-                        'status' => Issue::STATUS_OPEN,
-                        'first_seen' => $g['first'],
-                        'last_seen' => $g['last'],
-                        'events_count' => $g['count'],
-                        'last_event_id' => $g['last_event_id'],
-                        'environments' => array_keys($g['environments']),
-                        'metadata' => $g['metadata'],
-                    ]);
-                    $isNew = true;
-                } catch (QueryException $e) {
-                    // Another worker created it in the meantime: fall through to the update path.
-                    $issue = Issue::where('project_id', $g['project_id'])->where('fingerprint', $g['fingerprint'])->first();
-                    if (! $issue) {
-                        throw $e;
-                    }
-                }
+            try {
+                $results[$key] = $this->upsertGroup($g, $existing[$key] ?? null);
+            } catch (\Throwable $e) {
+                // One bad group must not poison the whole batch: log it, keep the events (issue_id 0).
+                Log::error('loggerxo: issue upsert failed, events kept without issue', [
+                    'project_id' => $g['project_id'],
+                    'fingerprint' => $g['fingerprint'],
+                    'title' => mb_substr($g['title'], 0, 120),
+                    'error' => $e->getMessage(),
+                ]);
             }
-
-            if (! $isNew) {
-                $update = [
-                    'events_count' => DB::raw('events_count + '.(int) $g['count']),
-                    'updated_at' => now(),
-                ];
-                $last = CarbonImmutable::instance($g['last']);
-                if ($last->gte($issue->last_seen)) {
-                    $update['last_seen'] = $last;
-                    $update['last_event_id'] = $g['last_event_id'];
-                    $update['title'] = $g['title'];
-                    $update['culprit'] = $g['culprit'];
-                    $update['metadata'] = json_encode(array_merge($issue->metadata ?? [], $g['metadata']));
-                }
-                if (CarbonImmutable::instance($g['first'])->lt($issue->first_seen)) {
-                    $update['first_seen'] = $g['first'];
-                }
-                if (Levels::rank($g['level']) > Levels::rank($issue->level)) {
-                    $update['level'] = $g['level'];
-                }
-                $envs = array_values(array_unique(array_merge($issue->environments ?? [], array_keys($g['environments']))));
-                if ($envs !== ($issue->environments ?? [])) {
-                    $update['environments'] = json_encode($envs);
-                }
-                if ($issue->status === Issue::STATUS_RESOLVED) {
-                    $update['status'] = Issue::STATUS_OPEN;
-                    $update['is_regressed'] = true;
-                    $update['resolved_at'] = null;
-                    $regressed = true;
-                } elseif ($issue->status === Issue::STATUS_IGNORED && $issue->ignored_until && $issue->ignored_until->isPast()) {
-                    $update['status'] = Issue::STATUS_OPEN;
-                    $update['ignored_until'] = null;
-                }
-                Issue::whereKey($issue->id)->update($update);
-                $issue->refresh();
-            }
-
-            $results[$key] = [
-                'issue' => $issue,
-                'new' => $isNew,
-                'regressed' => $regressed,
-                'count' => $g['count'],
-                'level' => $g['level'],
-                'environment' => array_key_last($g['environments']) ?? 'production',
-            ];
         }
 
         return $results;
+    }
+
+    /**
+     * @return array{issue: Issue, new: bool, regressed: bool, count: int, level: string, environment: string}
+     */
+    protected function upsertGroup(array $g, ?Issue $issue): array
+    {
+        $isNew = false;
+        $regressed = false;
+
+        if (! $issue) {
+            try {
+                $issue = Issue::create([
+                    'project_id' => $g['project_id'],
+                    'fingerprint' => $g['fingerprint'],
+                    'type' => $g['type'],
+                    'level' => $g['level'],
+                    'platform' => $g['platform'],
+                    'title' => $g['title'],
+                    'culprit' => $g['culprit'],
+                    'status' => Issue::STATUS_OPEN,
+                    'first_seen' => $g['first'],
+                    'last_seen' => $g['last'],
+                    'events_count' => $g['count'],
+                    'last_event_id' => $g['last_event_id'],
+                    'environments' => array_keys($g['environments']),
+                    'metadata' => $g['metadata'],
+                ]);
+                $isNew = true;
+            } catch (QueryException $e) {
+                // Another worker created it in the meantime: fall through to the update path.
+                $issue = Issue::where('project_id', $g['project_id'])->where('fingerprint', $g['fingerprint'])->first();
+                if (! $issue) {
+                    throw $e;
+                }
+            }
+        }
+
+        if (! $isNew) {
+            $update = [
+                'events_count' => DB::raw('events_count + '.(int) $g['count']),
+                'updated_at' => now(),
+            ];
+            $last = CarbonImmutable::instance($g['last']);
+            if ($last->gte($issue->last_seen)) {
+                $update['last_seen'] = $last;
+                $update['last_event_id'] = $g['last_event_id'];
+                $update['title'] = $g['title'];
+                $update['culprit'] = $g['culprit'];
+                $update['metadata'] = json_encode(array_merge($issue->metadata ?? [], $g['metadata']));
+            }
+            if (CarbonImmutable::instance($g['first'])->lt($issue->first_seen)) {
+                $update['first_seen'] = $g['first'];
+            }
+            if (Levels::rank($g['level']) > Levels::rank($issue->level)) {
+                $update['level'] = $g['level'];
+            }
+            $envs = array_values(array_unique(array_merge($issue->environments ?? [], array_keys($g['environments']))));
+            if ($envs !== ($issue->environments ?? [])) {
+                $update['environments'] = json_encode($envs);
+            }
+            if ($issue->status === Issue::STATUS_RESOLVED) {
+                $update['status'] = Issue::STATUS_OPEN;
+                $update['is_regressed'] = true;
+                $update['resolved_at'] = null;
+                $regressed = true;
+            } elseif ($issue->status === Issue::STATUS_IGNORED && $issue->ignored_until && $issue->ignored_until->isPast()) {
+                $update['status'] = Issue::STATUS_OPEN;
+                $update['ignored_until'] = null;
+            }
+            Issue::whereKey($issue->id)->update($update);
+            $issue->refresh();
+        }
+
+        return [
+            'issue' => $issue,
+            'new' => $isNew,
+            'regressed' => $regressed,
+            'count' => $g['count'],
+            'level' => $g['level'],
+            'environment' => array_key_last($g['environments']) ?? 'production',
+        ];
     }
 }

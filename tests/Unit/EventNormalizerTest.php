@@ -82,4 +82,16 @@ class EventNormalizerTest extends TestCase
         $out = $this->normalizer()->normalize(['type' => 'log', 'message' => 'hi'], $this->meta());
         $this->assertSame('{}', json_encode($out['row']['tags']));
     }
+
+    public function test_long_titles_fit_the_database_column(): void
+    {
+        $out = $this->normalizer()->normalize([
+            'type' => 'error',
+            'exception' => ['type' => 'RuntimeException', 'value' => str_repeat('ü', 900), 'frames' => []],
+        ], $this->meta());
+
+        $this->assertLessThanOrEqual(500, mb_strlen($out['issue']['title']));
+        $this->assertLessThanOrEqual(500, mb_strlen($out['issue']['culprit']));
+        $this->assertStringEndsWith('…', $out['issue']['title']);
+    }
 }
