@@ -52,6 +52,17 @@ class FingerprinterTest extends TestCase
         $this->assertSame('/assets/app.js', Fingerprinter::normalizeFile('https://shop.example.com/assets/app.9f8e7d6c.js?v=3'));
     }
 
+    public function test_url_parts_in_custom_fingerprints_group_by_pattern(): void
+    {
+        $a = $this->event(['fingerprint' => ['resource', 'img', 'https://images2.cdn8.net/insecure/c:950:600/plain/s3://processed-videos/reading-in-satins-mp4_3037/thumbnail.jpg']]);
+        $b = $this->event(['fingerprint' => ['resource', 'img', 'https://images2.cdn8.net/insecure/c:950:600/plain/s3://processed-videos/0404-12-mp4_5050/thumbnail.jpg?x=1']]);
+        $c = $this->event(['fingerprint' => ['resource', 'script', 'https://mc.yandex.ru/metrika/tag.js']]);
+
+        $this->assertSame(Fingerprinter::compute($a), Fingerprinter::compute($b));
+        $this->assertNotSame(Fingerprinter::compute($a), Fingerprinter::compute($c));
+        $this->assertSame('cdn.example.com/:n/items/:n/:file.png', Fingerprinter::normalizeUrl('https://cdn.example.com/v2/items/3fa85f64571745/cover-12.png?size=l'));
+    }
+
     protected function event(array $overrides): array
     {
         return $overrides + ['project_id' => 1, 'type' => 'error', 'level' => 'error', 'logger' => '', 'message' => '', 'transaction' => ''];

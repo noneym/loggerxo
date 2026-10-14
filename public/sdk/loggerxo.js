@@ -11,7 +11,7 @@
     'use strict';
     if (root.Loggerxo && root.Loggerxo.__loaded) { return; }
 
-    var VERSION = '0.1.0';
+    var VERSION = '0.1.1';
     var SDK = { name: 'loggerxo-browser', version: VERSION };
 
     var config = {
@@ -154,6 +154,18 @@
         if (!file) { return false; }
         if (/node_modules|loggerxo\.js|chrome-extension|moz-extension|safari-extension|\[native code\]|<anonymous>/.test(file)) { return false; }
         try { return file.indexOf(root.location.origin) === 0 || file.charAt(0) === '/'; } catch (e) { return true; }
+    }
+
+    function groupingUrl(url) {
+        // Host + path shape: query dropped, segments with digits (ids, slugs, hashes) collapsed, file name generalised.
+        var s = String(url).replace(/[?#].*$/, '').replace(/^[a-z][a-z0-9+.\-]*:\/\//i, '');
+        var parts = s.split('/');
+        for (var i = 1; i < parts.length; i++) {
+            var m = i === parts.length - 1 ? /\.([a-z0-9]{1,5})$/i.exec(parts[i]) : null;
+            if (m) { parts[i] = ':file.' + m[1].toLowerCase(); }
+            else if (/\d/.test(parts[i])) { parts[i] = ':n'; }
+        }
+        return parts.join('/');
     }
 
     function exceptionFromError(err) {
@@ -325,7 +337,7 @@
                 ev.logger = 'resource';
                 ev.message = 'Resource failed to load: ' + target.tagName.toLowerCase() + ' ' + truncate(src, 500);
                 ev.context.resource = { tag: target.tagName.toLowerCase(), src: src };
-                ev.fingerprint = ['resource', target.tagName.toLowerCase(), src.split('?')[0]];
+                ev.fingerprint = ['resource', target.tagName.toLowerCase(), groupingUrl(src)];
                 enqueue(ev);
                 return;
             }
@@ -403,7 +415,7 @@
             ev.logger = 'http';
             ev.message = (failed ? 'Network request failed: ' : 'HTTP ' + status + ': ') + method + ' ' + truncate(url, 500);
             ev.context.http = { method: method, url: url, status_code: status, duration_ms: Math.round(duration) };
-            ev.fingerprint = ['http', method, String(status || 'failed'), url.split('?')[0].replace(/\d+/g, ':id')];
+            ev.fingerprint = ['http', method, String(status || 'failed'), groupingUrl(url)];
             enqueue(ev);
         }
     }

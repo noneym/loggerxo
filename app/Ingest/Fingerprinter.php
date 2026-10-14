@@ -12,6 +12,8 @@ class Fingerprinter
         if (! empty($event['fingerprint']) && is_array($event['fingerprint'])) {
             $parts = array_map(fn ($p) => is_scalar($p) ? (string) $p : json_encode($p), $event['fingerprint']);
             $parts = array_filter($parts, fn ($p) => $p !== '' && $p !== '{{ default }}');
+            // URL-like parts still carry ids and hashes from older SDKs: normalise them so one pattern is one issue.
+            $parts = array_map(fn ($p) => str_contains($p, '/') ? self::normalizeUrl($p) : $p, $parts);
             if ($parts !== []) {
                 return sha1('custom|'.$event['project_id'].'|'.implode('|', $parts));
             }
@@ -63,6 +65,29 @@ class Fingerprinter
         }
 
         return trim($message);
+    }
+
+    /**
+     * Host plus path shape of a URL: query dropped, hex hashes and numbers replaced, file name generalised.
+     */
+    public static function normalizeUrl(string $url): string
+    {
+        $url = preg_replace('/[?#].*$/', '', $url) ?? $url;
+        $url = preg_replace('#^[a-z][a-z0-9+.-]*://#i', '', $url) ?? $url;
+        $segments = explode('/', $url);
+        $last = count($segments) - 1;
+        foreach ($segments as $i => $segment) {
+            if ($i === 0) {
+                continue; // host
+            }
+            if ($i === $last && preg_match('/\.([a-z0-9]{1,5})$/i', $segment, $m)) {
+                $segments[$i] = ':file.'.strtolower($m[1]);
+            } elseif (preg_match('/\d/', $segment)) {
+                $segments[$i] = ':n'; // slugs and ids carry digits; words without digits are structure
+            }
+        }
+
+        return implode('/', $segments);
     }
 
     public static function normalizeFile(string $file): string
