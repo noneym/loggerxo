@@ -196,6 +196,7 @@ LOG_STACK=single,loggerxo' }}</x-code>
             <a href="https://github.com/noneym/loggerxo-laravel" class="hover:text-ink-200" rel="noopener">Laravel package</a>
             <a href="{{ route('login') }}" class="hover:text-ink-200">Sign in</a>
         </nav>
+        <span>Powered by <a href="https://xofactory.com" rel="noopener" class="hover:text-ink-200">xofactory</a></span>
     </div>
 </footer>
 </body>
