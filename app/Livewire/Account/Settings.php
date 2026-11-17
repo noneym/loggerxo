@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Account;
 
+use App\Models\ApiToken;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
@@ -22,6 +23,11 @@ class Settings extends Component
     public string $password = '';
 
     public string $password_confirmation = '';
+
+    public string $token_name = '';
+
+    /** Plain value of the token that was just created; shown once and never stored. */
+    public ?string $new_token = null;
 
     public function mount(): void
     {
@@ -70,9 +76,29 @@ class Settings extends Component
         session()->flash('status', 'Password updated.');
     }
 
+    public function createToken(): void
+    {
+        $this->validate(['token_name' => ['required', 'string', 'max:100']]);
+        if (auth()->user()->apiTokens()->count() >= 20) {
+            $this->addError('token_name', 'You can have at most 20 tokens. Revoke one first.');
+
+            return;
+        }
+        [, $this->new_token] = ApiToken::issue(auth()->user(), trim($this->token_name));
+        $this->reset('token_name');
+    }
+
+    public function revokeToken(int $id): void
+    {
+        auth()->user()->apiTokens()->whereKey($id)->delete();
+        $this->new_token = null;
+    }
+
     public function render()
     {
         return view('livewire.account.settings', [
+            'tokens' => auth()->user()->apiTokens()->latest()->get(),
+            'mcpUrl' => route('mcp'),
             'timezones' => \DateTimeZone::listIdentifiers(),
             'organizations' => auth()->user()->organizations()->orderBy('name')->get(),
         ])->layoutData(['title' => 'Account']);

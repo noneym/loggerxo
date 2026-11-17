@@ -41,6 +41,7 @@ You do not have to run anything to try it. Create an account at [loggerxo.com](h
 - **Logs and console** – every Laravel log level and browser `console.error` / `console.warn`, searchable with `url:`, `user:`, `tag:k=v`, `exception:` and friends. Live tail while you deploy.
 - **Performance** – p50 / p95 per route, slow queries, span waterfalls, web vitals from real page loads.
 - **Alerts** – e-mail (Cloudflare Email Service or SMTP) and Telegram; triggers for new issues, regressions, frequency spikes and critical logs, with per-issue cooldowns.
+- **AI assistants** – a built-in [MCP](https://modelcontextprotocol.io) server at `/mcp` lets Claude Code, Cursor and other clients read issues, stack traces and logs with a personal token. Read-only. [Setup](https://loggerxo.com/docs#mcp).
 - **Teams** – organizations, projects, roles, invitations, and a super-admin page for whoever runs the server.
 
 ## Send events

@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
@@ -46,6 +48,24 @@ class User extends Authenticatable implements MustVerifyEmail
     public function currentOrganization(): BelongsTo
     {
         return $this->belongsTo(Organization::class, 'current_organization_id');
+    }
+
+    public function apiTokens(): HasMany
+    {
+        return $this->hasMany(ApiToken::class);
+    }
+
+    /**
+     * Projects the user may read: those of their organizations, or all of them for a super admin.
+     */
+    public function accessibleProjects(): Builder
+    {
+        $query = Project::query();
+        if (! $this->is_super_admin) {
+            $query->whereIn('organization_id', $this->organizations()->select('organizations.id'));
+        }
+
+        return $query;
     }
 
     public function roleIn(Organization $organization): ?string

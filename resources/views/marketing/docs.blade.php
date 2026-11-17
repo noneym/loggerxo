@@ -19,7 +19,7 @@
 <div class="mx-auto grid max-w-6xl gap-10 px-6 py-10 lg:grid-cols-[200px_1fr]">
     <aside class="hidden lg:block">
         <nav class="sticky top-20 space-y-1 text-[13px]">
-            @foreach (['concepts' => 'Concepts', 'laravel' => 'Laravel SDK', 'browser' => 'Browser SDK', 'http' => 'HTTP API', 'alerts' => 'Alerts', 'search' => 'Search syntax', 'selfhost' => 'Deploy'] as $id => $label)
+            @foreach (['concepts' => 'Concepts', 'laravel' => 'Laravel SDK', 'browser' => 'Browser SDK', 'http' => 'HTTP API', 'alerts' => 'Alerts', 'search' => 'Search syntax', 'mcp' => 'AI assistants (MCP)', 'selfhost' => 'Deploy'] as $id => $label)
                 <a href="#{{ $id }}" class="block rounded-md px-2.5 py-1.5 text-ink-400 hover:bg-ink-800 hover:text-ink-100">{{ $label }}</a>
             @endforeach
         </nav>
@@ -158,6 +158,39 @@ GET  '.$appUrl.'/api/v1/health' }}</x-code>
                 <tr><td><code>transaction:orders</code>, <code>server:web-1</code>, <code>release:2026.10</code>, <code>logger:payments</code></td><td>field contains value</td></tr>
                 </tbody>
             </table>
+        </section>
+
+        <section id="mcp">
+            <h2>AI assistants (MCP)</h2>
+            <p>Loggerxo speaks the <a href="https://modelcontextprotocol.io" class="text-brand-300">Model Context Protocol</a>, so an AI assistant such as Claude Code or Cursor can read your issues, stack traces and logs and work on the fix next to your code. Access is read-only and limited to the projects your account can see.</p>
+            <h3>Connect</h3>
+            <p>Create a token under <em>Account → API tokens</em> (it starts with <code>lxp_</code> and is shown once), then point your client at <code>{{ $appUrl }}/mcp</code> with the token as a bearer header.</p>
+            <x-code>{{ 'claude mcp add --transport http loggerxo '.$appUrl.'/mcp --header "Authorization: Bearer lxp_…"' }}</x-code>
+            <p>Clients configured with JSON (Cursor, VS Code, Claude Desktop through a remote-server bridge):</p>
+            <x-code>{{ '{
+  "mcpServers": {
+    "loggerxo": {
+      "type": "http",
+      "url": "'.$appUrl.'/mcp",
+      "headers": { "Authorization": "Bearer lxp_…" }
+    }
+  }
+}' }}</x-code>
+            <p>Then ask things like “what are the open issues in shop and what causes the top one?”.</p>
+            <h3>Tools</h3>
+            <table>
+                <thead><tr><th>Tool</th><th>Returns</th></tr></thead>
+                <tbody>
+                <tr><td><code>list_projects</code></td><td>Projects you can read, with open issue counts.</td></tr>
+                <tr><td><code>get_project_stats</code></td><td>Event, issue and performance totals for a time window.</td></tr>
+                <tr><td><code>list_issues</code></td><td>Issues of a project, filtered by status, type, level, environment or text.</td></tr>
+                <tr><td><code>get_issue</code></td><td>One issue with its latest event: exception, stack trace with source context, request, user, breadcrumbs, tags, comments.</td></tr>
+                <tr><td><code>list_issue_events</code></td><td>The occurrences of an issue over the last 30 days.</td></tr>
+                <tr><td><code>get_event</code></td><td>One event in full by its id.</td></tr>
+                <tr><td><code>search_events</code></td><td>Errors, logs and console output matching a query (same <a href="#search" class="text-brand-300">search syntax</a> as the app).</td></tr>
+                </tbody>
+            </table>
+            <p>The endpoint is stateless Streamable HTTP (<code>POST</code> with JSON-RPC, JSON responses). Revoke a token on the same page to cut a client off; a token never grants more than its owner has, and it cannot change or delete anything.</p>
         </section>
 
         <section id="selfhost">
