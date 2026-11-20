@@ -53,6 +53,6 @@ Loggerxo::flush();
 
 ## Configuration
 
-`php artisan vendor:publish --tag=loggerxo-config` and see `config/loggerxo.php`. Notable keys: `ignore_exceptions`, `ignore_transactions`, `send_default_pii`, `traces_sample_rate`, `slow_query_ms`, `queue` (send via your queue instead of at request end), `mask`.
+`php artisan vendor:publish --tag=loggerxo-config` and see `config/loggerxo.php`. Notable keys: `ignore_exceptions`, `ignore_transactions`, `send_default_pii`, `client_ip_headers` (visitor IP behind Cloudflare / a proxy, default `CF-Connecting-IP`), `traces_sample_rate`, `slow_query_ms`, `queue` (send via your queue instead of at request end), `mask`.
 
 Events are buffered in memory and sent once per request/job/command (gzip, 3 s timeout). The SDK never throws.

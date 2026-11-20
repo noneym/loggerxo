@@ -33,6 +33,9 @@ return [
         'batch_wait_ms' => (int) env('INGEST_BATCH_WAIT_MS', 1500),
         'rate_limit_per_minute' => (int) env('INGEST_RATE_LIMIT_PER_MINUTE', 6000),
         'max_body_kb' => (int) env('INGEST_MAX_BODY_KB', 2048),
+        // Headers carrying the sender's address, tried before $request->ip() (a Cloudflare edge IP here).
+        // Empty INGEST_CLIENT_IP_HEADERS= uses ip() only.
+        'client_ip_headers' => array_values(array_filter(array_map('trim', explode(',', (string) env('INGEST_CLIENT_IP_HEADERS', 'CF-Connecting-IP'))))),
         'max_events_per_request' => 500,
         'max_browser_events_per_request' => 50,
         'max_event_bytes' => 256 * 1024,

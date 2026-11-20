@@ -25,6 +25,11 @@ return [
     // Include user e-mail / IP in events.
     'send_default_pii' => env('LOGGERXO_SEND_DEFAULT_PII', false),
 
+    // Headers that carry the visitor's address, tried in order before $request->ip() (which is the
+    // proxy's address behind Cloudflare / a load balancer). Clients can forge these headers when the
+    // app is reachable without that proxy: set LOGGERXO_CLIENT_IP_HEADERS= (empty) to use only ip().
+    'client_ip_headers' => array_values(array_filter(array_map('trim', explode(',', (string) env('LOGGERXO_CLIENT_IP_HEADERS', 'CF-Connecting-IP'))))),
+
     // Breadcrumbs kept in memory per request.
     'max_breadcrumbs' => 40,
     // Source lines around each in-app frame (0 disables).

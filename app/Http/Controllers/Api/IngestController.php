@@ -91,7 +91,7 @@ class IngestController extends Controller
             'platform' => $source === 'browser' ? 'javascript' : (is_string($payload['platform'] ?? null) ? mb_substr($payload['platform'], 0, 32) : 'php'),
             'sdk' => mb_substr($sdk, 0, 64),
             'received_at' => now('UTC')->format('Y-m-d\TH:i:s.v\Z'),
-            'ip' => $request->ip(),
+            'ip' => $this->clientIp($request),
         ];
 
         $items = [];
@@ -169,5 +169,25 @@ class IngestController extends Controller
     protected function error(int $status, string $code, string $message, array $headers = []): JsonResponse
     {
         return response()->json(['error' => $code, 'message' => $message], $status, $headers);
+    }
+
+    /**
+     * The address of whoever sent the envelope. loggerxo.com sits behind Cloudflare, so $request->ip()
+     * is a Cloudflare edge address (104.22.x, 172.64.x): browser events, whose user IP falls back to
+     * this value, all looked like they came from Cloudflare. The headers in
+     * `loggerxo.ingest.client_ip_headers` are read first; the first valid IP wins.
+     */
+    protected function clientIp(Request $request): ?string
+    {
+        foreach ((array) config('loggerxo.ingest.client_ip_headers', []) as $header) {
+            foreach (explode(',', (string) $request->headers->get((string) $header, '')) as $candidate) {
+                $candidate = trim($candidate);
+                if ($candidate !== '' && filter_var($candidate, FILTER_VALIDATE_IP)) {
+                    return $candidate;
+                }
+            }
+        }
+
+        return $request->ip();
     }
 }

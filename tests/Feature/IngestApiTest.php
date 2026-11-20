@@ -53,6 +53,23 @@ class IngestApiTest extends TestCase
             ->assertStatus(401)->assertJsonPath('error', 'invalid_key');
     }
 
+    public function test_sender_ip_comes_from_cloudflare_header(): void
+    {
+        $project = $this->project();
+        $post = fn (array $headers) => $this->postJson('/api/v1/envelope', ['events' => [['message' => 'x']]], ['X-Loggerxo-Key' => $project->public_key] + $headers)
+            ->assertStatus(202);
+
+        $post(['CF-Connecting-IP' => '95.70.1.2']);
+        $this->assertSame('95.70.1.2', $this->pushed[0]['meta']['ip']);
+
+        $post(['CF-Connecting-IP' => 'not-an-ip']);
+        $this->assertSame('127.0.0.1', $this->pushed[1]['meta']['ip']);
+
+        config(['loggerxo.ingest.client_ip_headers' => []]);
+        $post(['CF-Connecting-IP' => '95.70.1.2']);
+        $this->assertSame('127.0.0.1', $this->pushed[2]['meta']['ip']);
+    }
+
     public function test_accepts_envelope_and_queues_events(): void
     {
         $project = $this->project();

@@ -263,7 +263,7 @@ class Client
             $event['url'] = $request->fullUrl();
             $event['user_agent'] = (string) $request->userAgent();
             if ($this->config('send_default_pii')) {
-                $event['user'] = ($event['user'] ?? []) + ['ip' => $request->ip()];
+                $event['user'] = ($event['user'] ?? []) + ['ip' => $this->clientIp($request)];
             }
         }
 
@@ -284,6 +284,25 @@ class Client
         }
     }
 
+    /**
+     * The visitor's address. Behind Cloudflare plus a load balancer, $request->ip() is the proxy's
+     * address unless the app trusts the whole chain, so the headers in `client_ip_headers` are read
+     * first (first valid IP wins; a comma separated list yields its first entry).
+     */
+    public function clientIp(Request $request): ?string
+    {
+        foreach ((array) $this->config('client_ip_headers', []) as $header) {
+            foreach (explode(',', (string) $request->headers->get((string) $header, '')) as $candidate) {
+                $candidate = trim($candidate);
+                if ($candidate !== '' && filter_var($candidate, FILTER_VALIDATE_IP)) {
+                    return $candidate;
+                }
+            }
+        }
+
+        return $request->ip();
+    }
+
     protected function requestData(Request $request): array
     {
         $headers = [];
@@ -297,7 +316,7 @@ class Client
             'headers' => $this->sanitize($headers),
             'query' => $this->sanitize($request->query()),
             'data' => $request->isMethod('GET') ? [] : $this->sanitize($this->limit($request->except($this->config('mask', [])))),
-            'ip' => $this->config('send_default_pii') ? $request->ip() : null,
+            'ip' => $this->config('send_default_pii') ? $this->clientIp($request) : null,
             'route' => $request->route()?->getName() ?: null,
         ];
     }
